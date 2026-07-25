@@ -96,7 +96,7 @@
 
         <!-- Upload Section -->
         <div id="upload-section" class="hidden">
-            <p style="color: #34a853; text-align: center; font-weight: bold; margin-bottom: 20px;" id="t-loggedInMsg">✔ You are logged in!</p>
+            <p style="color: #34a853; text-align: center; font-weight: bold; margin-bottom: 20px; display: none;" id="t-loggedInMsg">✔ You are logged in!</p>
             
             <div class="tabs">
                 <button class="tab-btn active" onclick="window.setMode('single')" id="t-tabSingle">Single Link</button>
@@ -156,7 +156,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
 
         // --- i18n ---
@@ -329,6 +329,19 @@
                 auth = getAuth(app);
                 provider = new GoogleAuthProvider();
                 provider.addScope('https://www.googleapis.com/auth/drive');
+
+                onAuthStateChanged(auth, (user) => {
+                    const savedToken = sessionStorage.getItem('driveAccessToken');
+                    if (user && savedToken) {
+                        accessToken = savedToken;
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('upload-section').classList.remove('hidden');
+                    } else {
+                        sessionStorage.removeItem('driveAccessToken');
+                        document.getElementById('login-section').classList.remove('hidden');
+                        document.getElementById('upload-section').classList.add('hidden');
+                    }
+                });
             } catch(e) {
                 console.error("Firebase init failed:", e);
                 document.getElementById('login-error').innerText = "Firebase initialization failed.";
@@ -345,9 +358,20 @@
                 const result = await signInWithPopup(auth, provider);
                 const credential = GoogleAuthProvider.credentialFromResult(result);
                 accessToken = credential.accessToken;
+                sessionStorage.setItem('driveAccessToken', accessToken);
                 
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('upload-section').classList.remove('hidden');
+                
+                // Flash the logged in message and then hide it
+                const loggedInMsg = document.getElementById('t-loggedInMsg');
+                loggedInMsg.style.display = 'block';
+                loggedInMsg.style.opacity = '1';
+                setTimeout(() => {
+                    loggedInMsg.style.transition = 'opacity 0.5s';
+                    loggedInMsg.style.opacity = '0';
+                    setTimeout(() => loggedInMsg.style.display = 'none', 500);
+                }, 3000);
             } catch (err) {
                 console.error('Login error:', err);
                 if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
