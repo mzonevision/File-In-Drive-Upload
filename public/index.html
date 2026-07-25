@@ -74,7 +74,7 @@
             <button class="lang-toggle" onclick="window.toggleLanguage()" id="langBtn">EN</button>
         </div>
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="/logo.svg" alt="Logo" style="width: 120px; height: 120px; display: block; margin: 0 auto 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <img src="/logo.png" alt="Logo" style="width: 120px; height: 120px; display: block; margin: 0 auto 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <h2 id="t-appTitle" style="margin: 0; padding-bottom: 5px;">File In Drive Upload</h2>
             <p id="t-appDesc" style="color: var(--label-color); margin: 0; font-size: 14px; max-width: 400px; margin-left: auto; margin-right: auto;"></p>
         </div>
@@ -140,6 +140,8 @@
             
             <div style="text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid var(--input-border); font-size: 13px;">
                 <a href="/privacy.html" style="color: var(--label-color); text-decoration: none;" id="t-privacyLink">Privacy Policy</a>
+                <span style="color: var(--label-color); margin: 0 10px;">|</span>
+                <a href="/terms.html" style="color: var(--label-color); text-decoration: none;" id="t-termsLink">Terms of Service</a>
             </div>
         </div>
     </div>
@@ -171,6 +173,7 @@
                 btnUpload: "Save to Drive",
                 placeholderName: "New Folder Name",
                 privacyLink: "Privacy Policy",
+                termsLink: "Terms of Service",
                 
                 // dynamic messages
                 errNoUrl: "Please enter a URL first",
@@ -213,6 +216,7 @@
                 btnUpload: "ڈرائیو میں محفوظ کریں",
                 placeholderName: "نئے فولڈر کا نام",
                 privacyLink: "پرائیویسی پالیسی",
+                termsLink: "سروس کی شرائط",
                 
                 // dynamic messages
                 errNoUrl: "پہلے URL درج کریں",
@@ -260,7 +264,7 @@
                 'tabSingle', 'tabMulti', 'lblFileUrl', 'lblFileUrls', 
                 'btnCheck', 'lblFileName', 'lblFolder', 'optRoot', 
                 'optNewFolder', 'btnCreateFolder', 'lblExtractZip', 'btnUpload',
-                'privacyLink'
+                'privacyLink', 'termsLink'
             ];
             
             staticElements.forEach(id => {
