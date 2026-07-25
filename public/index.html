@@ -73,7 +73,7 @@
             <button class="theme-toggle" onclick="window.toggleTheme()" aria-label="Toggle theme">🌙</button>
             <button class="lang-toggle" onclick="window.toggleLanguage()" id="langBtn">EN</button>
         </div>
-        <h2 id="t-appTitle">گوگل ڈرائیو اپلوڈر</h2>
+        <h2 id="t-appTitle">File In Drive Upload</h2>
         
         <!-- Login Section -->
         <div id="login-section" style="text-align: center;">
@@ -133,6 +133,10 @@
                 <div class="progress-bar" id="progressBar"></div>
             </div>
             <div class="progress-text" id="progressText">0%</div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid var(--input-border); font-size: 13px;">
+                <a href="/privacy.html" style="color: var(--label-color); text-decoration: none;" id="t-privacyLink">Privacy Policy</a>
+            </div>
         </div>
     </div>
 
@@ -144,7 +148,7 @@
         // --- i18n ---
         const i18n = {
             en: {
-                appTitle: "Google Drive Uploader",
+                appTitle: "File In Drive Upload",
                 loginText: "Please log in with your Google account first:",
                 loginBtn: "Login with Google",
                 loggedInMsg: "✔ You are logged in!",
@@ -161,6 +165,7 @@
                 lblExtractZip: "Extract ZIP file (keeps folder structure)",
                 btnUpload: "Save to Drive",
                 placeholderName: "New Folder Name",
+                privacyLink: "Privacy Policy",
                 
                 // dynamic messages
                 errNoUrl: "Please enter a URL first",
@@ -184,7 +189,7 @@
                 loginFailed: "Login failed: "
             },
             ur: {
-                appTitle: "گوگل ڈرائیو اپلوڈر",
+                appTitle: "File In Drive Upload",
                 loginText: "پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:",
                 loginBtn: "گوگل سے لاگ ان کریں",
                 loggedInMsg: "✔ آپ لاگ ان ہو چکے ہیں!",
@@ -201,6 +206,7 @@
                 lblExtractZip: "زپ فائل کو ایکسٹراکٹ کریں (فولڈر اسٹرکچر برقرار رہے گا)",
                 btnUpload: "ڈرائیو میں محفوظ کریں",
                 placeholderName: "نئے فولڈر کا نام",
+                privacyLink: "پرائیویسی پالیسی",
                 
                 // dynamic messages
                 errNoUrl: "پہلے URL درج کریں",
@@ -247,7 +253,8 @@
                 'appTitle', 'loginText', 'loginBtn', 'loggedInMsg', 
                 'tabSingle', 'tabMulti', 'lblFileUrl', 'lblFileUrls', 
                 'btnCheck', 'lblFileName', 'lblFolder', 'optRoot', 
-                'optNewFolder', 'btnCreateFolder', 'lblExtractZip', 'btnUpload'
+                'optNewFolder', 'btnCreateFolder', 'lblExtractZip', 'btnUpload',
+                'privacyLink'
             ];
             
             staticElements.forEach(id => {
