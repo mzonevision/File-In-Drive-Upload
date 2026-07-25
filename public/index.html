@@ -348,8 +348,6 @@
                 
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('upload-section').classList.remove('hidden');
-                
-                window.fetchFolders();
             } catch (err) {
                 console.error('Login error:', err);
                 if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
@@ -359,29 +357,6 @@
                 } else {
                     errorDiv.innerText = getMsg('loginFailed') + (err.message || 'Error');
                 }
-            }
-        };
-
-        window.fetchFolders = async function() {
-            try {
-                const res = await fetch('/api/folders', {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-                const data = await res.json();
-                if (data.success && data.folders) {
-                    const select = document.getElementById('folderSelect');
-                    Array.from(select.options).forEach(opt => {
-                        if (opt.value !== 'root' && opt.value !== 'new') select.remove(opt.index);
-                    });
-                    
-                    const newOptIndex = select.options.length - 1;
-                    data.folders.forEach(f => {
-                        const opt = new Option(f.path || f.name, f.id);
-                        select.add(opt, select.options[newOptIndex]);
-                    });
-                }
-            } catch (err) {
-                console.error('Failed to fetch folders', err);
             }
         };
 

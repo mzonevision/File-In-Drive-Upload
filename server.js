@@ -33,49 +33,6 @@ const getDriveClient = (req, res) => {
   return google.drive({ version: 'v3', auth: oauth2Client });
 };
 
-// 1. Get Folders
-app.get('/api/folders', async (req, res) => {
-  try {
-    const drive = getDriveClient(req, res);
-    const response = await drive.files.list({
-      q: "mimeType='application/vnd.google-apps.folder' and trashed=false",
-      fields: 'files(id, name, parents)',
-      pageSize: 1000,
-    });
-    
-    const folders = response.data.files || [];
-    const folderMap = new Map();
-    folders.forEach(f => folderMap.set(f.id, f));
-
-    folders.forEach(f => {
-      let path = f.name;
-      let current = f;
-      const seen = new Set([f.id]);
-      while (current.parents && current.parents.length > 0) {
-        const parentId = current.parents[0];
-        if (seen.has(parentId)) break; // avoid loops
-        seen.add(parentId);
-        const parent = folderMap.get(parentId);
-        if (parent) {
-          path = parent.name + ' / ' + path;
-          current = parent;
-        } else {
-          break;
-        }
-      }
-      f.path = path;
-    });
-
-    // Sort folders by path alphabetically
-    folders.sort((a, b) => a.path.localeCompare(b.path));
-
-    res.json({ success: true, folders: folders });
-  } catch (error) {
-    console.error('Fetch folders error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // 2. Create Folder
 app.post('/api/create-folder', async (req, res) => {
   try {
