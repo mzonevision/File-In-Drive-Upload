@@ -79,7 +79,7 @@
         <div id="login-section" style="text-align: center;">
             <p style="color: var(--label-color);" id="t-loginText">پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:</p>
             <button class="google-btn" onclick="window.handleLogin()" id="t-loginBtn">گوگل سے لاگ ان کریں</button>
-            <div id="login-error" style="color: red; margin-top: 10px; font-size: 14px;"></div>
+            <div id="login-error" style="color: red; margin-top: 15px; font-size: 14px; background: #ffebee; padding: 10px; border-radius: 8px; display: none;"></div>
         </div>
 
         <!-- Upload Section -->
@@ -317,6 +317,7 @@
         window.handleLogin = async function() {
             const errorDiv = document.getElementById('login-error');
             errorDiv.innerText = '...';
+            errorDiv.style.display = 'block';
             
             try {
                 const result = await signInWithPopup(auth, provider);
@@ -330,7 +331,7 @@
             } catch (err) {
                 console.error('Login error:', err);
                 if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
-                    errorDiv.innerText = '';
+                    errorDiv.style.display = 'none';
                 } else if (err.code === 'auth/popup-blocked') {
                     errorDiv.innerHTML = getMsg('popupBlocked').replace('{url}', window.location.href);
                 } else {
