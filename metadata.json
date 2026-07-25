@@ -1,0 +1,6 @@
+{
+  "name": "File In Drive Upload",
+  "description": "Upload files from URLs to Google Drive using Firebase Auth.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

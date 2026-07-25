@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File In Drive Upload</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: white;
+            --text-color: #333;
+            --heading-color: #1a73e8;
+            --label-color: #555;
+            --input-bg: white;
+            --input-border: #ddd;
+            --input-text: #333;
+            --secondary-bg: #f9f9f9;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --heading-color: #8ab4f8;
+            --label-color: #ccc;
+            --input-bg: #333;
+            --input-border: #555;
+            --input-text: #e0e0e0;
+            --secondary-bg: #2a2a2a;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
+        .container { background: var(--container-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; transition: background-color 0.3s; position: relative; }
+        h2 { color: var(--heading-color); margin-top: 0; text-align: center; transition: color 0.3s; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: var(--label-color); font-size: 14px; transition: color 0.3s; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid var(--input-border); border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 20px; font-weight: bold; transition: background 0.2s; }
+        button:hover { background: #1557b0; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .google-btn { background: #ea4335; }
+        .google-btn:hover { background: #d33828; }
+        .secondary-btn { background: #34a853; margin-top: 10px; font-size: 14px; padding: 10px; }
+        .secondary-btn:hover { background: #2d8c47; }
+        #status, #fileInfo { margin-top: 15px; font-size: 14px; text-align: center; }
+        .progress-bar-container { width: 100%; background: #e0e0e0; border-radius: 6px; margin-top: 15px; overflow: hidden; display: none; }
+        .progress-bar { height: 15px; background: #34a853; width: 0%; transition: width 0.3s; }
+        .progress-text { font-size: 12px; text-align: center; margin-top: 5px; color: var(--label-color); display: none; }
+        
+        .theme-toggle { position: absolute; top: 15px; left: 15px; background: transparent; border: none; cursor: pointer; font-size: 20px; width: auto; padding: 5px; margin-top: 0; color: var(--text-color); }
+        .theme-toggle:hover { background: transparent; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="theme-toggle" onclick="window.toggleTheme()" aria-label="Toggle theme">🌙</button>
+        <h2>گوگل ڈرائیو میں فائل اپلوڈ کریں</h2>
+        
+        <!-- Login Section -->
+        <div id="login-section" style="text-align: center;">
+            <p style="color: var(--label-color);">پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:</p>
+            <button class="google-btn" onclick="window.handleLogin()">Login with Google</button>
+            <div id="login-error" style="color: red; margin-top: 10px; font-size: 14px;"></div>
+        </div>
+
+        <!-- Upload Section -->
+        <div id="upload-section" style="display: none;">
+            <p style="color: #34a853; text-align: center; font-weight: bold; margin-bottom: 20px;">✔ آپ لاگ ان ہو چکے ہیں!</p>
+            
+            <label>فائل کا لنک (URL):</label>
+            <input type="url" id="fileUrl" placeholder="https://example.com/file.mp4" required>
+            
+            <button class="secondary-btn" onclick="window.checkFile()" id="checkBtn">فائل چیک کریں (سائز اور فارمیٹ)</button>
+            <div id="fileInfo"></div>
+
+            <label>فائل کا نام (اختیاری):</label>
+            <input type="text" id="fileName" placeholder="مثال: میری فائل.mp4">
+
+            <label>فولڈر منتخب کریں:</label>
+            <select id="folderSelect" onchange="window.handleFolderChange()">
+                <option value="root">مرکزی ڈرائیو (Root)</option>
+                <option value="new">+ نیا فولڈر بنائیں</option>
+            </select>
+            
+            <div id="newFolderContainer" style="display: none; margin-top: 10px; background: var(--secondary-bg); padding: 10px; border-radius: 6px; border: 1px solid var(--input-border);">
+                <input type="text" id="newFolderName" placeholder="نئے فولڈر کا نام">
+                <button type="button" class="secondary-btn" onclick="window.createFolder()" style="margin-top: 8px;">فولڈر بنائیں</button>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <label style="display: inline; margin-top: 0; cursor: pointer; color: #ea4335;">
+                    <input type="checkbox" id="extractZip" style="width: auto; margin-left: 5px;">
+                    زپ فائل کو ایکسٹراکٹ کریں (فولڈر اسٹرکچر برقرار رہے گا)
+                </label>
+            </div>
+
+            <button onclick="window.startUpload()" id="uploadBtn">ڈرائیو میں محفوظ کریں</button>
+            
+            <div id="status"></div>
+            
+            <div class="progress-bar-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
+
+        let auth;
+        let provider;
+        let analytics;
+        
+        // Theme Toggle Logic
+        window.toggleTheme = function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.querySelector('.theme-toggle').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+        };
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.theme-toggle').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        async function initFirebase() {
+            try {
+                const firebaseConfig = {
+                  apiKey: "AIzaSyAZ_psmUXTaboXm_oFpM71Bj0MHk7RQb9I",
+                  authDomain: "file-in-drive-upload.firebaseapp.com",
+                  projectId: "file-in-drive-upload",
+                  storageBucket: "file-in-drive-upload.firebasestorage.app",
+                  messagingSenderId: "462433843731",
+                  appId: "1:462433843731:web:dc40bff86dfc5ebea29de6",
+                  measurementId: "G-YXWC5HXT0W"
+                };
+                const app = initializeApp(firebaseConfig);
+                analytics = getAnalytics(app);
+                auth = getAuth(app);
+                provider = new GoogleAuthProvider();
+                provider.addScope('https://www.googleapis.com/auth/drive');
+            } catch(e) {
+                console.error("Firebase init failed:", e);
+                document.getElementById('login-error').innerText = "فائر بیس کنفیگریشن میں مسئلہ ہے۔";
+            }
+        }
+        
+        initFirebase();
+
+        let accessToken = null;
+
+        window.handleLogin = async function() {
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.innerText = 'براہ کرم پاپ اپ میں لاگ ان کریں...';
+            
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const credential = GoogleAuthProvider.credentialFromResult(result);
+                accessToken = credential.accessToken;
+                
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('upload-section').style.display = 'block';
+                
+                window.fetchFolders();
+            } catch (err) {
+                console.error('Login error:', err);
+                errorDiv.innerText = 'لاگ ان ناکام ہو گیا: ' + (err.message || 'Error occurred');
+            }
+        };
+
+        window.fetchFolders = async function() {
+            try {
+                const res = await fetch('/api/folders', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const data = await res.json();
+                if (data.success && data.folders) {
+                    const select = document.getElementById('folderSelect');
+                    Array.from(select.options).forEach(opt => {
+                        if (opt.value !== 'root' && opt.value !== 'new') select.remove(opt.index);
+                    });
+                    
+                    const newOptIndex = select.options.length - 1;
+                    data.folders.forEach(f => {
+                        const opt = new Option(f.path || f.name, f.id);
+                        select.add(opt, select.options[newOptIndex]);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to fetch folders', err);
+            }
+        };
+
+        window.handleFolderChange = function() {
+            const val = document.getElementById('folderSelect').value;
+            const container = document.getElementById('newFolderContainer');
+            container.style.display = val === 'new' ? 'block' : 'none';
+        };
+
+        window.createFolder = async function() {
+            const folderName = document.getElementById('newFolderName').value.trim();
+            if (!folderName) {
+                alert('فولڈر کا نام درج کریں');
+                return;
+            }
+            try {
+                const res = await fetch('/api/create-folder', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ folderName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('فولڈر بن گیا!');
+                    const select = document.getElementById('folderSelect');
+                    const opt = new Option(data.folder.name, data.folder.id);
+                    select.add(opt, select.options[select.options.length - 1]);
+                    select.value = data.folder.id;
+                    window.handleFolderChange();
+                    document.getElementById('newFolderName').value = '';
+                } else {
+                    alert('ایرر: ' + data.error);
+                }
+            } catch(e) {
+                alert('تکنیکی خرابی');
+            }
+        };
+
+        window.formatBytes = function(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        window.checkFile = async function() {
+            const fileUrl = document.getElementById('fileUrl').value;
+            const infoDiv = document.getElementById('fileInfo');
+            const checkBtn = document.getElementById('checkBtn');
+            
+            if (!fileUrl) {
+                infoDiv.innerHTML = '<span style="color: red;">پہلے URL درج کریں</span>';
+                return;
+            }
+            
+            checkBtn.disabled = true;
+            infoDiv.innerHTML = '<span style="color: blue;">فائل چیک ہو رہی ہے...</span>';
+            
+            try {
+                const res = await fetch('/api/check-file', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fileUrl })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const sizeStr = data.size ? window.formatBytes(parseInt(data.size)) : 'نامعلوم';
+                    infoDiv.innerHTML = `<span style="color: green;">✔ فارمیٹ: <b>${data.mimeType}</b> | سائز: <b>${sizeStr}</b></span>`;
+                } else {
+                    infoDiv.innerHTML = `<span style="color: red;">خرابی: ${data.error}</span>`;
+                }
+            } catch(e) {
+                infoDiv.innerHTML = `<span style="color: red;">تکنیکی خرابی</span>`;
+            }
+            checkBtn.disabled = false;
+        };
+
+        window.startUpload = async function() {
+            if (!accessToken) {
+                alert("پہلے لاگ ان کریں!");
+                return;
+            }
+
+            const fileUrl = document.getElementById('fileUrl').value;
+            let fileName = document.getElementById('fileName').value;
+            let folderId = document.getElementById('folderSelect').value;
+            
+            const statusDiv = document.getElementById('status');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            if (!fileUrl) {
+                statusDiv.innerHTML = '<span style="color: red;">براہ کرم URL درج کریں</span>';
+                return;
+            }
+            
+            if (folderId === 'new') {
+                alert('براہ کرم فولڈر بنائیں یا کوئی دوسرا فولڈر منتخب کریں');
+                return;
+            }
+
+            statusDiv.innerHTML = '<span style="color: blue;">شروع ہو رہا ہے...</span>';
+            uploadBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            progressText.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.innerText = '0%';
+
+            const extractZip = document.getElementById('extractZip').checked;
+
+            try {
+                const endpoint = extractZip ? '/api/upload-zip-stream' : '/api/upload-stream';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ fileUrl, fileName, folderId })
+                });
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                let done = false;
+                let buffer = '';
+
+                while (!done) {
+                    const { value, done: readerDone } = await reader.read();
+                    done = readerDone;
+                    
+                    if (value) {
+                        buffer += decoder.decode(value, { stream: !done });
+                        const lines = buffer.split('\n');
+                        // The last item is either empty (if ended with newline) or an incomplete JSON string.
+                        buffer = lines.pop(); 
+                        
+                        for (const line of lines) {
+                            if (line.trim() === '') continue;
+                            try {
+                                const data = JSON.parse(line);
+                                if (data.type === 'status') {
+                                    statusDiv.innerHTML = `<span style="color: blue;">${data.message}</span>`;
+                                } else if (data.type === 'progress') {
+                                    if (data.percent !== undefined) {
+                                        progressBar.style.width = `${data.percent}%`;
+                                        progressText.innerText = `${data.percent}% (${window.formatBytes(data.bytes)} / ${window.formatBytes(data.total)})`;
+                                    } else {
+                                        progressBar.style.width = `100%`;
+                                        progressText.innerText = `${window.formatBytes(data.bytes)} ڈاؤنلوڈ ہو گئے...`;
+                                    }
+                                } else if (data.type === 'success') {
+                                    if (data.isZip) {
+                                        statusDiv.innerHTML = `<span style="color: green;">✔ ${data.message} <br><br>اپنے منتخب کردہ فولڈر میں ڈرائیو چیک کریں۔</span>`;
+                                    } else {
+                                        statusDiv.innerHTML = `<span style="color: green;">✔ فائل کامیابی سے محفوظ ہو گئی! <br><br><a href="${data.file.webViewLink}" target="_blank" style="color: #1a73e8; text-decoration: underline;">گوگل ڈرائیو میں دیکھیں</a></span>`;
+                                    }
+                                    progressBar.style.width = `100%`;
+                                    progressText.innerText = `مکمل!`;
+                                } else if (data.type === 'error') {
+                                    statusDiv.innerHTML = `<span style="color: red;">ایرر: ${data.message}</span>`;
+                                    progressBar.style.background = 'red';
+                                }
+                            } catch(e) {
+                                console.warn("JSON parse error on chunk", line);
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                statusDiv.innerHTML = `<span style="color: red;">تکنیکی خرابی: ${error.message}</span>`;
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
