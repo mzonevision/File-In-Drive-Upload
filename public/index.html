@@ -73,7 +73,11 @@
             <button class="theme-toggle" onclick="window.toggleTheme()" aria-label="Toggle theme">🌙</button>
             <button class="lang-toggle" onclick="window.toggleLanguage()" id="langBtn">EN</button>
         </div>
-        <h2 id="t-appTitle">File In Drive Upload</h2>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="/logo.svg" alt="Logo" style="width: 120px; height: 120px; display: block; margin: 0 auto 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h2 id="t-appTitle" style="margin: 0; padding-bottom: 5px;">File In Drive Upload</h2>
+            <p id="t-appDesc" style="color: var(--label-color); margin: 0; font-size: 14px; max-width: 400px; margin-left: auto; margin-right: auto;"></p>
+        </div>
         
         <!-- Login Section -->
         <div id="login-section" style="text-align: center;">
@@ -149,6 +153,7 @@
         const i18n = {
             en: {
                 appTitle: "File In Drive Upload",
+                appDesc: "A simple tool to easily upload files directly from web URLs to your Google Drive.",
                 loginText: "Please log in with your Google account first:",
                 loginBtn: "Login with Google",
                 loggedInMsg: "✔ You are logged in!",
@@ -190,6 +195,7 @@
             },
             ur: {
                 appTitle: "File In Drive Upload",
+                appDesc: "ویب لنکس سے براہ راست اپنی گوگل ڈرائیو میں فائلیں اپلوڈ کرنے کا ایک آسان ٹول۔",
                 loginText: "پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:",
                 loginBtn: "گوگل سے لاگ ان کریں",
                 loggedInMsg: "✔ آپ لاگ ان ہو چکے ہیں!",
@@ -250,7 +256,7 @@
             document.getElementById('langBtn').innerText = currentLang === 'ur' ? 'EN' : 'اردو';
             
             const staticElements = [
-                'appTitle', 'loginText', 'loginBtn', 'loggedInMsg', 
+                'appTitle', 'appDesc', 'loginText', 'loginBtn', 'loggedInMsg', 
                 'tabSingle', 'tabMulti', 'lblFileUrl', 'lblFileUrls', 
                 'btnCheck', 'lblFileName', 'lblFolder', 'optRoot', 
                 'optNewFolder', 'btnCreateFolder', 'lblExtractZip', 'btnUpload',
