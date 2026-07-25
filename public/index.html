@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html lang="ur" dir="rtl" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File In Drive Upload</title>
+    <title>Google Drive Uploader</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -15,6 +15,10 @@
             --input-border: #ddd;
             --input-text: #333;
             --secondary-bg: #f9f9f9;
+            --tab-bg: #e0e0e0;
+            --tab-active: #1a73e8;
+            --tab-text: #333;
+            --tab-active-text: white;
         }
 
         [data-theme="dark"] {
@@ -27,13 +31,18 @@
             --input-border: #555;
             --input-text: #e0e0e0;
             --secondary-bg: #2a2a2a;
+            --tab-bg: #333;
+            --tab-active: #8ab4f8;
+            --tab-text: #ccc;
+            --tab-active-text: #121212;
         }
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
         .container { background: var(--container-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; transition: background-color 0.3s; position: relative; }
         h2 { color: var(--heading-color); margin-top: 0; text-align: center; transition: color 0.3s; }
         label { display: block; margin-top: 15px; font-weight: bold; color: var(--label-color); font-size: 14px; transition: color 0.3s; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid var(--input-border); border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid var(--input-border); border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        textarea { resize: vertical; font-family: monospace; }
         button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 20px; font-weight: bold; transition: background 0.2s; }
         button:hover { background: #1557b0; }
         button:disabled { background: #ccc; cursor: not-allowed; }
@@ -46,54 +55,77 @@
         .progress-bar { height: 15px; background: #34a853; width: 0%; transition: width 0.3s; }
         .progress-text { font-size: 12px; text-align: center; margin-top: 5px; color: var(--label-color); display: none; }
         
-        .theme-toggle { position: absolute; top: 15px; left: 15px; background: transparent; border: none; cursor: pointer; font-size: 20px; width: auto; padding: 5px; margin-top: 0; color: var(--text-color); }
-        .theme-toggle:hover { background: transparent; opacity: 0.8; }
+        .top-controls { display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
+        .theme-toggle, .lang-toggle { background: transparent; border: none; cursor: pointer; font-size: 20px; padding: 5px; color: var(--text-color); width: auto; margin: 0; }
+        .lang-toggle { font-size: 14px; font-weight: bold; border: 1px solid var(--input-border); border-radius: 4px; padding: 4px 8px; }
+        .theme-toggle:hover, .lang-toggle:hover { opacity: 0.8; }
+        
+        .tabs { display: flex; margin-bottom: 15px; gap: 10px; }
+        .tab-btn { flex: 1; padding: 10px; background: var(--tab-bg); color: var(--tab-text); border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; margin-top: 0; transition: 0.3s; }
+        .tab-btn.active { background: var(--tab-active); color: var(--tab-active-text); }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="theme-toggle" onclick="window.toggleTheme()" aria-label="Toggle theme">🌙</button>
-        <h2>گوگل ڈرائیو میں فائل اپلوڈ کریں</h2>
+        <div class="top-controls">
+            <button class="theme-toggle" onclick="window.toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <button class="lang-toggle" onclick="window.toggleLanguage()" id="langBtn">EN</button>
+        </div>
+        <h2 id="t-appTitle">گوگل ڈرائیو اپلوڈر</h2>
         
         <!-- Login Section -->
         <div id="login-section" style="text-align: center;">
-            <p style="color: var(--label-color);">پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:</p>
-            <button class="google-btn" onclick="window.handleLogin()">Login with Google</button>
+            <p style="color: var(--label-color);" id="t-loginText">پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:</p>
+            <button class="google-btn" onclick="window.handleLogin()" id="t-loginBtn">گوگل سے لاگ ان کریں</button>
             <div id="login-error" style="color: red; margin-top: 10px; font-size: 14px;"></div>
         </div>
 
         <!-- Upload Section -->
-        <div id="upload-section" style="display: none;">
-            <p style="color: #34a853; text-align: center; font-weight: bold; margin-bottom: 20px;">✔ آپ لاگ ان ہو چکے ہیں!</p>
+        <div id="upload-section" class="hidden">
+            <p style="color: #34a853; text-align: center; font-weight: bold; margin-bottom: 20px;" id="t-loggedInMsg">✔ آپ لاگ ان ہو چکے ہیں!</p>
             
-            <label>فائل کا لنک (URL):</label>
-            <input type="url" id="fileUrl" placeholder="https://example.com/file.mp4" required>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="window.setMode('single')" id="t-tabSingle">ایک لنک</button>
+                <button class="tab-btn" onclick="window.setMode('multi')" id="t-tabMulti">ایک سے زائد لنکس</button>
+            </div>
             
-            <button class="secondary-btn" onclick="window.checkFile()" id="checkBtn">فائل چیک کریں (سائز اور فارمیٹ)</button>
-            <div id="fileInfo"></div>
+            <div id="mode-single">
+                <label id="t-lblFileUrl">فائل کا لنک (URL):</label>
+                <input type="url" id="fileUrl" placeholder="https://example.com/file.mp4">
+                
+                <button class="secondary-btn" onclick="window.checkFile()" id="t-btnCheck">فائل چیک کریں (سائز اور فارمیٹ)</button>
+                <div id="fileInfo"></div>
 
-            <label>فائل کا نام (اختیاری):</label>
-            <input type="text" id="fileName" placeholder="مثال: میری فائل.mp4">
+                <label id="t-lblFileName">فائل کا نام (اختیاری):</label>
+                <input type="text" id="fileName" placeholder="my_file.mp4">
+            </div>
 
-            <label>فولڈر منتخب کریں:</label>
+            <div id="mode-multi" class="hidden">
+                <label id="t-lblFileUrls">فائل کے لنکس (URLs):</label>
+                <textarea id="fileUrls" rows="4" placeholder="https://example.com/file1.mp4&#10;https://example.com/file2.zip"></textarea>
+            </div>
+            
+            <label id="t-lblFolder">فولڈر منتخب کریں:</label>
             <select id="folderSelect" onchange="window.handleFolderChange()">
-                <option value="root">مرکزی ڈرائیو (Root)</option>
-                <option value="new">+ نیا فولڈر بنائیں</option>
+                <option value="root" id="t-optRoot">مرکزی ڈرائیو (Root)</option>
+                <option value="new" id="t-optNewFolder">+ نیا فولڈر بنائیں</option>
             </select>
             
             <div id="newFolderContainer" style="display: none; margin-top: 10px; background: var(--secondary-bg); padding: 10px; border-radius: 6px; border: 1px solid var(--input-border);">
                 <input type="text" id="newFolderName" placeholder="نئے فولڈر کا نام">
-                <button type="button" class="secondary-btn" onclick="window.createFolder()" style="margin-top: 8px;">فولڈر بنائیں</button>
+                <button type="button" class="secondary-btn" onclick="window.createFolder()" style="margin-top: 8px;" id="t-btnCreateFolder">فولڈر بنائیں</button>
             </div>
 
             <div style="margin-top: 15px;">
                 <label style="display: inline; margin-top: 0; cursor: pointer; color: #ea4335;">
-                    <input type="checkbox" id="extractZip" style="width: auto; margin-left: 5px;">
-                    زپ فائل کو ایکسٹراکٹ کریں (فولڈر اسٹرکچر برقرار رہے گا)
+                    <input type="checkbox" id="extractZip" style="width: auto; margin-inline-end: 5px;">
+                    <span id="t-lblExtractZip">زپ فائل کو ایکسٹراکٹ کریں (فولڈر اسٹرکچر برقرار رہے گا)</span>
                 </label>
             </div>
 
-            <button onclick="window.startUpload()" id="uploadBtn">ڈرائیو میں محفوظ کریں</button>
+            <button onclick="window.startUpload()" id="t-btnUpload">ڈرائیو میں محفوظ کریں</button>
             
             <div id="status"></div>
             
@@ -109,11 +141,137 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
 
-        let auth;
-        let provider;
-        let analytics;
+        // --- i18n ---
+        const i18n = {
+            en: {
+                appTitle: "Google Drive Uploader",
+                loginText: "Please log in with your Google account first:",
+                loginBtn: "Login with Google",
+                loggedInMsg: "✔ You are logged in!",
+                tabSingle: "Single Link",
+                tabMulti: "Multiple Links",
+                lblFileUrl: "File Link (URL):",
+                lblFileUrls: "File Links (URLs):",
+                btnCheck: "Check File (Size & Format)",
+                lblFileName: "File Name (Optional):",
+                lblFolder: "Select Folder:",
+                optRoot: "Main Drive (Root)",
+                optNewFolder: "+ Create New Folder",
+                btnCreateFolder: "Create Folder",
+                lblExtractZip: "Extract ZIP file (keeps folder structure)",
+                btnUpload: "Save to Drive",
+                placeholderName: "New Folder Name",
+                
+                // dynamic messages
+                errNoUrl: "Please enter a URL first",
+                errNoUrls: "Please enter at least one URL",
+                checking: "Checking file...",
+                unknownSize: "Unknown",
+                format: "Format",
+                size: "Size",
+                error: "Error",
+                techError: "Technical Error",
+                loginFirst: "Please log in first!",
+                folderReq: "Please create a folder or select another one",
+                starting: "Starting...",
+                processing: "Processing file {i} / {total}...",
+                doneMsg: "✔ File saved!",
+                viewMsg: "View",
+                zipDoneMsg: "✔ ZIP Extracted!",
+                complete: "Complete!",
+                allComplete: "<b>Complete!</b> {success} / {total} files uploaded.",
+                popupBlocked: 'Browser blocked popup. Allow popups or <a href="{url}" target="_blank">open in new tab</a>.',
+                loginFailed: "Login failed: "
+            },
+            ur: {
+                appTitle: "گوگل ڈرائیو اپلوڈر",
+                loginText: "پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:",
+                loginBtn: "گوگل سے لاگ ان کریں",
+                loggedInMsg: "✔ آپ لاگ ان ہو چکے ہیں!",
+                tabSingle: "ایک لنک",
+                tabMulti: "ایک سے زائد لنکس",
+                lblFileUrl: "فائل کا لنک (URL):",
+                lblFileUrls: "فائل کے لنکس (URLs):",
+                btnCheck: "فائل چیک کریں (سائز اور فارمیٹ)",
+                lblFileName: "فائل کا نام (اختیاری):",
+                lblFolder: "فولڈر منتخب کریں:",
+                optRoot: "مرکزی ڈرائیو (Root)",
+                optNewFolder: "+ نیا فولڈر بنائیں",
+                btnCreateFolder: "فولڈر بنائیں",
+                lblExtractZip: "زپ فائل کو ایکسٹراکٹ کریں (فولڈر اسٹرکچر برقرار رہے گا)",
+                btnUpload: "ڈرائیو میں محفوظ کریں",
+                placeholderName: "نئے فولڈر کا نام",
+                
+                // dynamic messages
+                errNoUrl: "پہلے URL درج کریں",
+                errNoUrls: "براہ کرم کم از کم ایک URL درج کریں",
+                checking: "فائل چیک ہو رہی ہے...",
+                unknownSize: "نامعلوم",
+                format: "فارمیٹ",
+                size: "سائز",
+                error: "خرابی",
+                techError: "تکنیکی خرابی",
+                loginFirst: "پہلے لاگ ان کریں!",
+                folderReq: "براہ کرم فولڈر بنائیں یا کوئی دوسرا فولڈر منتخب کریں",
+                starting: "شروع ہو رہا ہے...",
+                processing: "فائل {i} / {total} پروسیس ہو رہی ہے...",
+                doneMsg: "✔ فائل محفوظ ہو گئی!",
+                viewMsg: "دیکھیں",
+                zipDoneMsg: "✔ زپ فائل ایکسٹراکٹ ہو گئی!",
+                complete: "مکمل!",
+                allComplete: "<b>مکمل!</b> {success} / {total} فائلز اپلوڈ ہوئیں۔",
+                popupBlocked: 'براؤزر نے پاپ اپ کو بلاک کر دیا ہے۔ اجازت دیں یا <a href="{url}" target="_blank">نئے ٹیب میں کھولیں</a>۔',
+                loginFailed: "لاگ ان ناکام ہو گیا: "
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'ur';
+        let currentMode = 'single';
         
-        // Theme Toggle Logic
+        window.toggleLanguage = function() {
+            currentLang = currentLang === 'ur' ? 'en' : 'ur';
+            localStorage.setItem('lang', currentLang);
+            applyLanguage();
+        };
+
+        function getMsg(key) {
+            return i18n[currentLang][key] || key;
+        }
+
+        function applyLanguage() {
+            document.getElementById('htmlRoot').lang = currentLang;
+            document.getElementById('htmlRoot').dir = currentLang === 'ur' ? 'rtl' : 'ltr';
+            document.getElementById('langBtn').innerText = currentLang === 'ur' ? 'EN' : 'اردو';
+            
+            const staticElements = [
+                'appTitle', 'loginText', 'loginBtn', 'loggedInMsg', 
+                'tabSingle', 'tabMulti', 'lblFileUrl', 'lblFileUrls', 
+                'btnCheck', 'lblFileName', 'lblFolder', 'optRoot', 
+                'optNewFolder', 'btnCreateFolder', 'lblExtractZip', 'btnUpload'
+            ];
+            
+            staticElements.forEach(id => {
+                const el = document.getElementById('t-' + id);
+                if (el) el.innerHTML = i18n[currentLang][id];
+            });
+
+            document.getElementById('newFolderName').placeholder = i18n[currentLang].placeholderName;
+            
+            // clear dynamic messages if present
+            document.getElementById('fileInfo').innerHTML = '';
+            document.getElementById('status').innerHTML = '';
+        }
+
+        window.setMode = function(mode) {
+            currentMode = mode;
+            document.getElementById('mode-single').classList.toggle('hidden', mode !== 'single');
+            document.getElementById('mode-multi').classList.toggle('hidden', mode !== 'multi');
+            
+            document.getElementById('t-tabSingle').classList.toggle('active', mode === 'single');
+            document.getElementById('t-tabMulti').classList.toggle('active', mode === 'multi');
+        };
+
+        // --- Theme ---
         window.toggleTheme = function() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -122,12 +280,16 @@
             document.querySelector('.theme-toggle').innerText = newTheme === 'dark' ? '☀️' : '🌙';
         };
 
-        // Load saved theme
         const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', savedTheme);
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('.theme-toggle').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+            applyLanguage();
         });
+
+        // --- Firebase ---
+        let auth, provider, analytics;
+        let accessToken = null;
 
         async function initFirebase() {
             try {
@@ -147,30 +309,33 @@
                 provider.addScope('https://www.googleapis.com/auth/drive');
             } catch(e) {
                 console.error("Firebase init failed:", e);
-                document.getElementById('login-error').innerText = "فائر بیس کنفیگریشن میں مسئلہ ہے۔";
+                document.getElementById('login-error').innerText = "Firebase initialization failed.";
             }
         }
-        
         initFirebase();
-
-        let accessToken = null;
 
         window.handleLogin = async function() {
             const errorDiv = document.getElementById('login-error');
-            errorDiv.innerText = 'براہ کرم پاپ اپ میں لاگ ان کریں...';
+            errorDiv.innerText = '...';
             
             try {
                 const result = await signInWithPopup(auth, provider);
                 const credential = GoogleAuthProvider.credentialFromResult(result);
                 accessToken = credential.accessToken;
                 
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('upload-section').style.display = 'block';
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('upload-section').classList.remove('hidden');
                 
                 window.fetchFolders();
             } catch (err) {
                 console.error('Login error:', err);
-                errorDiv.innerText = 'لاگ ان ناکام ہو گیا: ' + (err.message || 'Error occurred');
+                if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+                    errorDiv.innerText = '';
+                } else if (err.code === 'auth/popup-blocked') {
+                    errorDiv.innerHTML = getMsg('popupBlocked').replace('{url}', window.location.href);
+                } else {
+                    errorDiv.innerText = getMsg('loginFailed') + (err.message || 'Error');
+                }
             }
         };
 
@@ -205,10 +370,8 @@
 
         window.createFolder = async function() {
             const folderName = document.getElementById('newFolderName').value.trim();
-            if (!folderName) {
-                alert('فولڈر کا نام درج کریں');
-                return;
-            }
+            if (!folderName) return;
+            
             try {
                 const res = await fetch('/api/create-folder', {
                     method: 'POST',
@@ -220,7 +383,6 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('فولڈر بن گیا!');
                     const select = document.getElementById('folderSelect');
                     const opt = new Option(data.folder.name, data.folder.id);
                     select.add(opt, select.options[select.options.length - 1]);
@@ -228,10 +390,10 @@
                     window.handleFolderChange();
                     document.getElementById('newFolderName').value = '';
                 } else {
-                    alert('ایرر: ' + data.error);
+                    alert(getMsg('error') + ': ' + data.error);
                 }
             } catch(e) {
-                alert('تکنیکی خرابی');
+                alert(getMsg('techError'));
             }
         };
 
@@ -247,15 +409,15 @@
         window.checkFile = async function() {
             const fileUrl = document.getElementById('fileUrl').value;
             const infoDiv = document.getElementById('fileInfo');
-            const checkBtn = document.getElementById('checkBtn');
+            const checkBtn = document.getElementById('t-btnCheck');
             
             if (!fileUrl) {
-                infoDiv.innerHTML = '<span style="color: red;">پہلے URL درج کریں</span>';
+                infoDiv.innerHTML = `<span style="color: red;">${getMsg('errNoUrl')}</span>`;
                 return;
             }
             
             checkBtn.disabled = true;
-            infoDiv.innerHTML = '<span style="color: blue;">فائل چیک ہو رہی ہے...</span>';
+            infoDiv.innerHTML = `<span style="color: blue;">${getMsg('checking')}</span>`;
             
             try {
                 const res = await fetch('/api/check-file', {
@@ -265,117 +427,146 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    const sizeStr = data.size ? window.formatBytes(parseInt(data.size)) : 'نامعلوم';
-                    infoDiv.innerHTML = `<span style="color: green;">✔ فارمیٹ: <b>${data.mimeType}</b> | سائز: <b>${sizeStr}</b></span>`;
+                    const sizeStr = data.size ? window.formatBytes(parseInt(data.size)) : getMsg('unknownSize');
+                    infoDiv.innerHTML = `<span style="color: green;">✔ ${getMsg('format')}: <b>${data.mimeType}</b> | ${getMsg('size')}: <b>${sizeStr}</b></span>`;
                 } else {
-                    infoDiv.innerHTML = `<span style="color: red;">خرابی: ${data.error}</span>`;
+                    infoDiv.innerHTML = `<span style="color: red;">${getMsg('error')}: ${data.error}</span>`;
                 }
             } catch(e) {
-                infoDiv.innerHTML = `<span style="color: red;">تکنیکی خرابی</span>`;
+                infoDiv.innerHTML = `<span style="color: red;">${getMsg('techError')}</span>`;
             }
             checkBtn.disabled = false;
         };
 
         window.startUpload = async function() {
             if (!accessToken) {
-                alert("پہلے لاگ ان کریں!");
+                alert(getMsg('loginFirst'));
                 return;
             }
 
-            const fileUrl = document.getElementById('fileUrl').value;
-            let fileName = document.getElementById('fileName').value;
-            let folderId = document.getElementById('folderSelect').value;
+            let urls = [];
+            let fileName = null;
+            
+            if (currentMode === 'single') {
+                const singleUrl = document.getElementById('fileUrl').value.trim();
+                if (singleUrl) urls.push(singleUrl);
+                fileName = document.getElementById('fileName').value.trim();
+            } else {
+                const rawUrls = document.getElementById('fileUrls').value;
+                urls = rawUrls.split('\n').map(u => u.trim()).filter(u => u);
+            }
             
             const statusDiv = document.getElementById('status');
-            const uploadBtn = document.getElementById('uploadBtn');
+            if (urls.length === 0) {
+                statusDiv.innerHTML = `<span style="color: red;">${currentMode === 'single' ? getMsg('errNoUrl') : getMsg('errNoUrls')}</span>`;
+                return;
+            }
+
+            let folderId = document.getElementById('folderSelect').value;
+            if (folderId === 'new') {
+                alert(getMsg('folderReq'));
+                return;
+            }
+
+            const uploadBtn = document.getElementById('t-btnUpload');
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
 
-            if (!fileUrl) {
-                statusDiv.innerHTML = '<span style="color: red;">براہ کرم URL درج کریں</span>';
-                return;
-            }
-            
-            if (folderId === 'new') {
-                alert('براہ کرم فولڈر بنائیں یا کوئی دوسرا فولڈر منتخب کریں');
-                return;
-            }
-
-            statusDiv.innerHTML = '<span style="color: blue;">شروع ہو رہا ہے...</span>';
             uploadBtn.disabled = true;
             progressContainer.style.display = 'block';
             progressText.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressText.innerText = '0%';
 
             const extractZip = document.getElementById('extractZip').checked;
+            let overallSuccessCount = 0;
 
-            try {
-                const endpoint = extractZip ? '/api/upload-zip-stream' : '/api/upload-stream';
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify({ fileUrl, fileName, folderId })
-                });
-                
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                
-                let done = false;
-                let buffer = '';
+            for (let i = 0; i < urls.length; i++) {
+                const fileUrl = urls[i];
+                let msg = getMsg('processing').replace('{i}', i+1).replace('{total}', urls.length);
+                statusDiv.innerHTML = `<span style="color: blue;">${msg}</span>`;
+                progressBar.style.width = '0%';
+                progressBar.style.background = '#34a853';
+                progressText.innerText = '0%';
 
-                while (!done) {
-                    const { value, done: readerDone } = await reader.read();
-                    done = readerDone;
+                try {
+                    const endpoint = extractZip ? '/api/upload-zip-stream' : '/api/upload-stream';
+                    const payload = { fileUrl, folderId };
+                    if (currentMode === 'single' && fileName) {
+                        payload.fileName = fileName;
+                    }
                     
-                    if (value) {
-                        buffer += decoder.decode(value, { stream: !done });
-                        const lines = buffer.split('\n');
-                        // The last item is either empty (if ended with newline) or an incomplete JSON string.
-                        buffer = lines.pop(); 
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${accessToken}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    let done = false;
+                    let buffer = '';
+                    let fileSuccess = false;
+
+                    while (!done) {
+                        const { value, done: readerDone } = await reader.read();
+                        done = readerDone;
                         
-                        for (const line of lines) {
-                            if (line.trim() === '') continue;
-                            try {
-                                const data = JSON.parse(line);
-                                if (data.type === 'status') {
-                                    statusDiv.innerHTML = `<span style="color: blue;">${data.message}</span>`;
-                                } else if (data.type === 'progress') {
-                                    if (data.percent !== undefined) {
-                                        progressBar.style.width = `${data.percent}%`;
-                                        progressText.innerText = `${data.percent}% (${window.formatBytes(data.bytes)} / ${window.formatBytes(data.total)})`;
-                                    } else {
+                        if (value) {
+                            buffer += decoder.decode(value, { stream: !done });
+                            const lines = buffer.split('\n');
+                            buffer = lines.pop(); 
+                            
+                            for (const line of lines) {
+                                if (line.trim() === '') continue;
+                                try {
+                                    const data = JSON.parse(line);
+                                    if (data.type === 'status') {
+                                        statusDiv.innerHTML = `<span style="color: blue;">[${i+1}/${urls.length}] ${data.message}</span>`;
+                                    } else if (data.type === 'progress') {
+                                        if (data.percent !== undefined) {
+                                            progressBar.style.width = `${data.percent}%`;
+                                            progressText.innerText = `${data.percent}% (${window.formatBytes(data.bytes)} / ${window.formatBytes(data.total)})`;
+                                        } else {
+                                            progressBar.style.width = `100%`;
+                                            progressText.innerText = `${window.formatBytes(data.bytes)}...`;
+                                        }
+                                    } else if (data.type === 'success') {
+                                        fileSuccess = true;
+                                        overallSuccessCount++;
                                         progressBar.style.width = `100%`;
-                                        progressText.innerText = `${window.formatBytes(data.bytes)} ڈاؤنلوڈ ہو گئے...`;
+                                        progressText.innerText = getMsg('complete');
+                                        if (data.isZip) {
+                                            statusDiv.innerHTML = `<span style="color: green;">[${i+1}/${urls.length}] ${getMsg('zipDoneMsg')} ${data.message}</span>`;
+                                        } else {
+                                            statusDiv.innerHTML = `<span style="color: green;">[${i+1}/${urls.length}] ${getMsg('doneMsg')} <a href="${data.file.webViewLink}" target="_blank" style="color: #1a73e8;">${getMsg('viewMsg')}</a></span>`;
+                                        }
+                                    } else if (data.type === 'error') {
+                                        statusDiv.innerHTML = `<span style="color: red;">${getMsg('error')}: [${i+1}/${urls.length}] ${data.message}</span>`;
+                                        progressBar.style.background = 'red';
                                     }
-                                } else if (data.type === 'success') {
-                                    if (data.isZip) {
-                                        statusDiv.innerHTML = `<span style="color: green;">✔ ${data.message} <br><br>اپنے منتخب کردہ فولڈر میں ڈرائیو چیک کریں۔</span>`;
-                                    } else {
-                                        statusDiv.innerHTML = `<span style="color: green;">✔ فائل کامیابی سے محفوظ ہو گئی! <br><br><a href="${data.file.webViewLink}" target="_blank" style="color: #1a73e8; text-decoration: underline;">گوگل ڈرائیو میں دیکھیں</a></span>`;
-                                    }
-                                    progressBar.style.width = `100%`;
-                                    progressText.innerText = `مکمل!`;
-                                } else if (data.type === 'error') {
-                                    statusDiv.innerHTML = `<span style="color: red;">ایرر: ${data.message}</span>`;
-                                    progressBar.style.background = 'red';
+                                } catch(e) {
+                                    console.warn("JSON parse error on chunk", line);
                                 }
-                            } catch(e) {
-                                console.warn("JSON parse error on chunk", line);
                             }
                         }
                     }
+                    if (!fileSuccess) {
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = `<span style="color: red;">${getMsg('techError')} [${i+1}/${urls.length}]: ${error.message}</span>`;
+                    progressBar.style.background = 'red';
+                    await new Promise(r => setTimeout(r, 2000));
                 }
-
-            } catch (error) {
-                statusDiv.innerHTML = `<span style="color: red;">تکنیکی خرابی: ${error.message}</span>`;
-            } finally {
-                uploadBtn.disabled = false;
             }
+
+            let allCompleteMsg = getMsg('allComplete').replace('{success}', overallSuccessCount).replace('{total}', urls.length);
+            statusDiv.innerHTML = `<span style="color: green;">${allCompleteMsg}</span>`;
+            uploadBtn.disabled = false;
         };
     </script>
 </body>

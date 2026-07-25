@@ -99,6 +99,25 @@ app.post('/api/create-folder', async (req, res) => {
   }
 });
 
+// Helper for retrying fetches
+async function fetchWithRetry(url, options = {}, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      if ([502, 503, 504].includes(response.status)) {
+        if (i === retries - 1) throw new Error(`Failed to fetch file: ${response.status}`);
+        await new Promise(r => setTimeout(r, 2000 * (i + 1))); // backoff
+        continue;
+      }
+      return response; // let the caller handle other non-ok statuses
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+    }
+  }
+}
+
 // 3. Check File (Size & Format)
 app.post('/api/check-file', async (req, res) => {
   try {
@@ -111,19 +130,19 @@ app.post('/api/check-file', async (req, res) => {
 
     // Perform a HEAD request to get metadata without downloading
     try {
-      const response = await fetch(fileUrl, { method: 'HEAD' });
+      const response = await fetchWithRetry(fileUrl, { method: 'HEAD' });
       if (response.ok) {
         mimeType = response.headers.get('content-type') || 'Unknown';
         size = response.headers.get('content-length');
         headSuccess = true;
       }
     } catch (e) {
-      console.warn('HEAD request failed, falling back to GET:', e.message);
+      // HEAD request failed, silently fall back to GET
     }
 
     if (!headSuccess) {
         // Fallback to GET if HEAD is not allowed or failed
-        const getResponse = await fetch(fileUrl);
+        const getResponse = await fetchWithRetry(fileUrl);
         if (!getResponse.ok) throw new Error(`Failed to fetch file: ${getResponse.status}`);
         
         mimeType = getResponse.headers.get('content-type') || 'Unknown';
@@ -157,14 +176,24 @@ app.post('/api/upload-stream', async (req, res) => {
 
     sendUpdate({ type: 'status', message: 'فائل ڈاؤنلوڈ ہو رہی ہے...' }); // Fetching file
     
-    const response = await fetch(fileUrl);
+    const response = await fetchWithRetry(fileUrl);
     if (!response.ok) throw new Error(`Failed to fetch file: ${response.status}`);
     
     const mimeType = response.headers.get('content-type') || 'application/octet-stream';
     const totalSizeStr = response.headers.get('content-length');
     const totalSize = totalSizeStr ? parseInt(totalSizeStr, 10) : 0;
     
-    const actualFileName = fileName || fileUrl.split('/').pop().split('?')[0] || 'Downloaded_File';
+    let actualFileName = fileName;
+    if (!actualFileName) {
+        const contentDisposition = response.headers.get('content-disposition');
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+            if (filenameMatch) actualFileName = filenameMatch[1];
+        }
+    }
+    if (!actualFileName) {
+        actualFileName = fileUrl.split('/').pop().split('?')[0] || 'Downloaded_File';
+    }
 
     let downloaded = 0;
     let lastReportTime = 0;
@@ -272,7 +301,7 @@ app.post('/api/upload-zip-stream', async (req, res) => {
 
     sendUpdate({ type: 'status', message: 'زپ فائل ڈاؤنلوڈ اور ایکسٹراکٹ ہو رہی ہے...' });
     
-    const response = await fetch(fileUrl);
+    const response = await fetchWithRetry(fileUrl);
     if (!response.ok) throw new Error(`Failed to fetch file: ${response.status}`);
     
     const totalSizeStr = response.headers.get('content-length');
