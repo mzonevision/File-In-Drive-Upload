@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl" id="htmlRoot">
+<html lang="en" dir="ltr" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,7 +39,7 @@
 
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
         .container { background: var(--container-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; transition: background-color 0.3s; position: relative; }
-        h2 { color: var(--heading-color); margin-top: 0; text-align: center; transition: color 0.3s; }
+        h1, h2 { color: var(--heading-color); margin-top: 0; text-align: center; transition: color 0.3s; }
         label { display: block; margin-top: 15px; font-weight: bold; color: var(--label-color); font-size: 14px; transition: color 0.3s; }
         input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid var(--input-border); border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: var(--input-bg); color: var(--input-text); transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
         textarea { resize: vertical; font-family: monospace; }
@@ -65,71 +65,79 @@
         .tab-btn.active { background: var(--tab-active); color: var(--tab-active-text); }
         
         .hidden { display: none !important; }
+        .app-notice { background: var(--secondary-bg); border-left: 4px solid var(--heading-color); padding: 10px; margin-top: 15px; border-radius: 4px; font-size: 12px; color: var(--label-color); text-align: left; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="top-controls">
             <button class="theme-toggle" onclick="window.toggleTheme()" aria-label="Toggle theme">🌙</button>
-            <button class="lang-toggle" onclick="window.toggleLanguage()" id="langBtn">EN</button>
+            <button class="lang-toggle" onclick="window.toggleLanguage()" id="langBtn">اردو</button>
         </div>
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="/logo.png" alt="Logo" style="width: 120px; height: 120px; display: block; margin: 0 auto 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <h2 id="t-appTitle" style="margin: 0; padding-bottom: 5px;">File In Drive Upload</h2>
-            <p id="t-appDesc" style="color: var(--label-color); margin: 0; font-size: 14px; max-width: 400px; margin-left: auto; margin-right: auto;"></p>
+            <img src="/logo.png" alt="File In Drive Upload Logo" style="width: 120px; height: 120px; display: block; margin: 0 auto 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h1 id="t-appTitle" style="margin: 0; padding-bottom: 5px; font-size: 24px;">File In Drive Upload</h1>
+            <p id="t-appDesc" style="color: var(--label-color); margin: 0; font-size: 14px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                File In Drive Upload is a web application that allows users to easily select and upload their files directly to their personal Google Drive account through secure Google OAuth authentication.
+            </p>
         </div>
         
         <!-- Login Section -->
         <div id="login-section" style="text-align: center;">
-            <p style="color: var(--label-color);" id="t-loginText">پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:</p>
-            <button class="google-btn" onclick="window.handleLogin()" id="t-loginBtn">گوگل سے لاگ ان کریں</button>
+            <p style="color: var(--label-color);" id="t-loginText">Please log in with your Google account first:</p>
+            <button class="google-btn" onclick="window.handleLogin()" id="t-loginBtn">Login with Google</button>
+            
+            <div class="app-notice">
+                <strong>How this app uses your data:</strong> File In Drive Upload accesses Google Drive API solely to upload files specified by you. We do not view, store, or share your private Google Drive files.
+            </div>
+
             <div id="login-error" style="color: red; margin-top: 15px; font-size: 14px; background: #ffebee; padding: 10px; border-radius: 8px; display: none;"></div>
         </div>
 
         <!-- Upload Section -->
         <div id="upload-section" class="hidden">
-            <p style="color: #34a853; text-align: center; font-weight: bold; margin-bottom: 20px;" id="t-loggedInMsg">✔ آپ لاگ ان ہو چکے ہیں!</p>
+            <p style="color: #34a853; text-align: center; font-weight: bold; margin-bottom: 20px;" id="t-loggedInMsg">✔ You are logged in!</p>
             
             <div class="tabs">
-                <button class="tab-btn active" onclick="window.setMode('single')" id="t-tabSingle">ایک لنک</button>
-                <button class="tab-btn" onclick="window.setMode('multi')" id="t-tabMulti">ایک سے زائد لنکس</button>
+                <button class="tab-btn active" onclick="window.setMode('single')" id="t-tabSingle">Single Link</button>
+                <button class="tab-btn" onclick="window.setMode('multi')" id="t-tabMulti">Multiple Links</button>
             </div>
             
             <div id="mode-single">
-                <label id="t-lblFileUrl">فائل کا لنک (URL):</label>
+                <label id="t-lblFileUrl">File Link (URL):</label>
                 <input type="url" id="fileUrl" placeholder="https://example.com/file.mp4">
                 
-                <button class="secondary-btn" onclick="window.checkFile()" id="t-btnCheck">فائل چیک کریں (سائز اور فارمیٹ)</button>
+                <button class="secondary-btn" onclick="window.checkFile()" id="t-btnCheck">Check File (Size & Format)</button>
                 <div id="fileInfo"></div>
 
-                <label id="t-lblFileName">فائل کا نام (اختیاری):</label>
+                <label id="t-lblFileName">File Name (Optional):</label>
                 <input type="text" id="fileName" placeholder="my_file.mp4">
             </div>
 
             <div id="mode-multi" class="hidden">
-                <label id="t-lblFileUrls">فائل کے لنکس (URLs):</label>
+                <label id="t-lblFileUrls">File Links (URLs):</label>
                 <textarea id="fileUrls" rows="4" placeholder="https://example.com/file1.mp4&#10;https://example.com/file2.zip"></textarea>
             </div>
             
-            <label id="t-lblFolder">فولڈر منتخب کریں:</label>
+            <label id="t-lblFolder">Select Folder:</label>
             <select id="folderSelect" onchange="window.handleFolderChange()">
-                <option value="root" id="t-optRoot">مرکزی ڈرائیو (Root)</option>
-                <option value="new" id="t-optNewFolder">+ نیا فولڈر بنائیں</option>
+                <option value="root" id="t-optRoot">Main Drive (Root)</option>
+                <option value="new" id="t-optNewFolder">+ Create New Folder</option>
             </select>
             
             <div id="newFolderContainer" style="display: none; margin-top: 10px; background: var(--secondary-bg); padding: 10px; border-radius: 6px; border: 1px solid var(--input-border);">
-                <input type="text" id="newFolderName" placeholder="نئے فولڈر کا نام">
-                <button type="button" class="secondary-btn" onclick="window.createFolder()" style="margin-top: 8px;" id="t-btnCreateFolder">فولڈر بنائیں</button>
+                <input type="text" id="newFolderName" placeholder="New Folder Name">
+                <button type="button" class="secondary-btn" onclick="window.createFolder()" style="margin-top: 8px;" id="t-btnCreateFolder">Create Folder</button>
             </div>
 
             <div style="margin-top: 15px;">
                 <label style="display: inline; margin-top: 0; cursor: pointer; color: #ea4335;">
                     <input type="checkbox" id="extractZip" style="width: auto; margin-inline-end: 5px;">
-                    <span id="t-lblExtractZip">زپ فائل کو ایکسٹراکٹ کریں (فولڈر اسٹرکچر برقرار رہے گا)</span>
+                    <span id="t-lblExtractZip">Extract ZIP file (keeps folder structure)</span>
                 </label>
             </div>
 
-            <button onclick="window.startUpload()" id="t-btnUpload">ڈرائیو میں محفوظ کریں</button>
+            <button onclick="window.startUpload()" id="t-btnUpload">Save to Drive</button>
             
             <div id="status"></div>
             
@@ -155,7 +163,7 @@
         const i18n = {
             en: {
                 appTitle: "File In Drive Upload",
-                appDesc: "A simple tool to easily upload files directly from web URLs to your Google Drive.",
+                appDesc: "File In Drive Upload is a web application that allows users to easily select and upload their files directly to their personal Google Drive account through secure Google OAuth authentication.",
                 loginText: "Please log in with your Google account first:",
                 loginBtn: "Login with Google",
                 loggedInMsg: "✔ You are logged in!",
@@ -241,7 +249,7 @@
             }
         };
 
-        let currentLang = localStorage.getItem('lang') || 'ur';
+        let currentLang = localStorage.getItem('lang') || 'en';
         let currentMode = 'single';
         
         window.toggleLanguage = function() {
@@ -274,7 +282,6 @@
 
             document.getElementById('newFolderName').placeholder = i18n[currentLang].placeholderName;
             
-            // clear dynamic messages if present
             document.getElementById('fileInfo').innerHTML = '';
             document.getElementById('status').innerHTML = '';
         }
