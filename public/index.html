@@ -77,7 +77,7 @@
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="/logo.png" alt="File In Drive Upload Logo" style="width: 120px; height: 120px; display: block; margin: 0 auto 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <h1 id="t-appTitle" style="margin: 0; padding-bottom: 5px; font-size: 24px;">File In Drive Upload</h1>
-            <p style="color: #ccc; margin: 10px 0; font-size: 14px; text-align: center;">
+            <p id="t-appDesc" style="color: #ccc; margin: 10px 0; font-size: 14px; text-align: center;">
                 File In Drive Upload is a web application that allows users to easily select and upload their files directly to their personal Google Drive account through secure Google OAuth authentication.
             </p>
         </div>
@@ -163,6 +163,7 @@
         const i18n = {
             en: {
                 appTitle: "File In Drive Upload",
+                appDesc: "File In Drive Upload is a web application that allows users to easily select and upload their files directly to their personal Google Drive account through secure Google OAuth authentication.",
                 loginText: "Please log in with your Google account first:",
                 loginBtn: "Login with Google",
                 loggedInMsg: "✔ You are logged in!",
@@ -205,6 +206,7 @@
             },
             ur: {
                 appTitle: "File In Drive Upload",
+                appDesc: "\"فائل ان ڈرائیو اپلوڈ\" ایک ایسی ویب ایپلیکیشن ہے جو صارفین کو محفوظ گوگل OAuth تصدیق کے ذریعے براہ راست اپنے ذاتی گوگل ڈرائیو اکاؤنٹ میں فائلیں منتخب کرنے اور اپلوڈ کرنے کی سہولت فراہم کرتی ہے۔",
                 loginText: "پہلے اپنے گوگل اکاؤنٹ سے لاگ ان کریں:",
                 loginBtn: "گوگل سے لاگ ان کریں",
                 loggedInMsg: "✔ آپ لاگ ان ہو چکے ہیں!",
@@ -266,7 +268,7 @@
             document.getElementById('langBtn').innerText = currentLang === 'ur' ? 'EN' : 'اردو';
             
             const staticElements = [
-                'appTitle', 'loginText', 'loginBtn', 'loggedInMsg', 
+                'appTitle', 'appDesc', 'loginText', 'loginBtn', 'loggedInMsg', 
                 'tabSingle', 'tabMulti', 'lblFileUrl', 'lblFileUrls', 
                 'btnCheck', 'lblFileName', 'lblFolder', 'optRoot', 
                 'optNewFolder', 'btnCreateFolder', 'lblExtractZip', 'btnUpload',
